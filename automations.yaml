@@ -1,0 +1,204 @@
+- id: castpaused
+  alias: PucKast paused
+  trigger:
+  - platform: state
+    entity_id: media_player.puckast
+    to: paused
+  condition:
+  - condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  action:
+    entity_id: scene.cast_paused
+    service: scene.turn_on
+
+- id: castidle
+  alias: PucKast idle
+  trigger:
+  - platform: state
+    entity_id: media_player.puckast
+    to: idle
+  condition:
+  - condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  action:
+    entity_id: scene.cast_idle
+    service: scene.turn_on
+
+- id: castplaying
+  alias: PucKast playing
+  trigger:
+  - entity_id: media_player.puckast
+    platform: state
+    to: playing
+  condition:
+  - condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  action:
+  - service: scene.turn_on
+    entity_id: scene.cast_playing
+
+- id: castoff
+  alias: PucKast off
+  trigger:
+  - entity_id: media_player.puckast
+    platform: state
+    to: 'off'
+  condition:
+    condition: and
+    conditions:
+    - condition: state
+      entity_id: sun.sun
+      state: below_horizon
+    - condition: time
+      before: '23:05:00'
+      after: 07:00:00
+  action:
+  - service: scene.turn_on
+    entity_id: scene.cast_off
+
+
+- id: fliclamptoggle
+  alias: Flic Lamp Toggle
+  trigger:
+  - event_type: flic_click
+    platform: event
+    event_data:
+      click_type: single
+      button_name: flic_80e4da728e11
+  action:
+  - service: light.toggle
+    entity_id: light.lamp
+
+- id: fliclampbrightnessdown
+  alias: Flic Lamp Brightness Down
+  trigger:
+  - event_data:
+      button_name: flic_80e4da728e11
+      click_type: double
+    event_type: flic_click
+    platform: event
+  action:
+  - service: light.turn_on
+    data_template:
+      entity_id: light.lamp
+      brightness: >
+              {{ states.light.lamp.attributes.brightness - 50 }}
+      transition: 3
+
+- id: fliclampbrightnessup
+  alias: Flic Lamp Brightness Up
+  trigger:
+  - event_data:
+      button_name: flic_80e4da728e11
+      click_type: hold
+    event_type: flic_click
+    platform: event
+  action:
+  - service: light.turn_on
+    data_template:
+      entity_id: light.lamp
+      brightness: >
+              {{ states.light.lamp.attributes.brightness + 50 }}
+      transition: 3
+
+  
+- id: livingroomlightson
+  alias: Livingroom lights turn on standing lamp
+  trigger:
+  - platform: state
+    entity_id: light.innr3
+    to: 'on'
+  condition:
+  - condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  action:
+  - service: light.toggle
+    entity_id: light.standinglamp
+
+- id: livingroomlightsoff
+  alias: Livingroom lights go off turn off standing lamp
+  trigger:
+  - platform: state
+    entity_id: light.innr3
+    to: 'off'
+  condition:
+  - condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  action:
+  - service: light.toggle
+    entity_id: light.standinglamp
+
+
+- id: blackflicpause
+  alias: Black Flic Button Play-Pause Music 
+  trigger:
+  - event_type: flic_click
+    platform: event
+    event_data:
+      click_type: single
+      button_name: flic_80e4da72e62e
+  action:
+  - service: media_player.media_play_pause
+    entity_id: media_player.silentbeast
+
+- id: blackflicdouble
+  alias: Black Flic Button Volume Up
+  trigger:
+  - event_type: flic_click
+    platform: event
+    event_data:
+      click_type: double
+      button_name: flic_80e4da72e62e
+  action:
+  - service: media_player.volume_set
+    data_template:
+      entity_id: media_player.silentbeast
+      volume_level: >
+              {{ states.media_player.silentbeast.attributes.volume_level + 0.05 }}
+
+- id: blackflichold
+  alias: Black Flic Button Volume Down
+  trigger:
+  - event_type: flic_click
+    platform: event
+    event_data:
+      click_type: hold
+      button_name: flic_80e4da72e62e
+  action:
+  - service: media_player.volume_set
+    data_template:
+      entity_id: media_player.silentbeast
+      volume_level: >
+              {{ states.media_player.silentbeast.attributes.volume_level - 0.05 }}
+
+- id: puckcomeshome
+  alias: Puck Comes Home
+  trigger:
+  - entity_id: device_tracker.android9ad57bb230916cb9
+    platform: state
+    to: home
+  condition:
+  - entity_id: device_tracker.huawei_p9_lite_2017
+    condition: state
+    state: not_home
+  - condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  - condition: time
+    after: 16:00:00
+    before: 23:00:00
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.silentbeast
+      media_content_id: http://xtrad.io:8080/low.mp3
+      media_content_type: MUSIC
+  - service: media_player.volume_set
+    data:
+      entity_id: media_player.silentbeast
+      volume_level: 0.25
